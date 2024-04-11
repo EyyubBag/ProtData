@@ -4,9 +4,10 @@
 #   * maybe fix reactive binding of selected columns and PCA + Datatable
 #   * Correct way to trim Sample Names
 #   * fix ratio of plots(take advantage of the full page)
-#   * swap to shinydashboard for a more dynamic sidebar 
-#   * fix issue with import PerseusR on a new machine
+#   * fix issue with installing dependencies on a new machine
+#     * could transition to renv
 #   * display summary statistic for the data 
+#   * Feedback 
 
 # Future Ideas 
 #   * Enrichments 
@@ -26,7 +27,8 @@ librarian::shelf(tidyverse,
                  shinyWidgets,
                  shinydashboard,
                  DT,
-                 pcaMethods, 
+                 pcaMethods,
+                 ggpubr,
                  ggrepel, 
                  pheatmap, 
                  EnhancedVolcano,
@@ -36,10 +38,19 @@ librarian::shelf(tidyverse,
                  cox-labs/PerseusR,
                  quiet=TRUE)
 
+
+
 trimSamples <- function(x){
   y <- unlist(strsplit(x,"[.]"))
   return(y[[length(y)-1]])
 }
+
+# installed_packages <- "renv" %in% rownames(installed.packages())
+# if (any(installed_packages == FALSE)) {
+#   install.packages("renv")
+# }
+
+
 
 ProtData <- function(...){
 
@@ -59,6 +70,7 @@ ProtData <- function(...){
     body = dashboardBody(
       tabsetPanel(id="tabs",
         tabPanel("Datatable",DT::dataTableOutput("contents")),
+        tabPanel("Boxplots",plotOutput("boxplots")),
         tabPanel("PCA",plotOutput("pcaPlot")),
         tabPanel("Heatmap",plotOutput("heatmap")),
         tabPanel("Volcano",plotOutput("volcano"))
@@ -86,30 +98,17 @@ server <- function(input, output, session) {
     
     if (input$trim){
       cols <- colnames(perseus$main)
-      
+      if (grepl(".",cols[1],fixed=TRUE)){
       cols_split <- lapply(cols,trimSamples)
       cols_split <- unlist(cols_split)
       
       colnames(perseus$main) <- cols_split
       rownames(perseus$annotRows) <- cols_split
+      }
     }
     
     
     perseus
-  })
-  
-  
-  dataset_trim <- eventReactive(input$trim,{
-    data <- dataset()
-    
-    cols <- colnames(data$main)
-    
-    cols_split <- lapply(cols,trimSamples)
-    cols_split <- unlist(cols_split)
-    
-    colnames(dataset()$main) <- cols_split
-    rownames(dataset()$annotRows) <- make.names(cols_split,unique=TRUE)
-    
   })
   
   # Select the wanted Columns for the PCA plot and displayed Datatable 
@@ -123,8 +122,8 @@ server <- function(input, output, session) {
     groupings <- colnames(data$annotRows)
     
     tagList(
-      conditionalPanel(condition='input.tabs == "PCA"',
-                       pickerInput("pickGrouping", "Choose Grouping",choices=groupings,selected = groupings[1],multiple = FALSE),
+      conditionalPanel(condition='input.tabs == "PCA" || input.tabs == "Boxplots"',
+                       pickerInput("pickGrouping", "Choose Grouping",choices=groupings,selected = groupings[1],multiple = FALSE)
                        )
     )
   })
@@ -171,6 +170,9 @@ server <- function(input, output, session) {
                        )
     )
   })
+  
+  
+
 
   # prepare a custom Dataframe volcano_df to draw the VolcanoPlot 
   volcano_df <- eventReactive(input$volcanoButton,{
@@ -269,6 +271,24 @@ server <- function(input, output, session) {
       geom_text_repel(show.legend = FALSE) +
       labs(col=input$pickGrouping)
     
+    
+  })
+  
+  output$boxplots <- renderPlot({
+    data <- dataset()
+    filter_list <- dataset_filtered()
+    
+    data_filtered <- data$main[,filter_list]
+    
+    #print(row.names(data$annotRows))
+    
+    annot_df <- as.data.frame(data$annotRows)
+    annot_df$ind <- row.names(annot_df)
+    annot_df_filtered <- annot_df[filter_list,]
+
+    boxplot_df <- right_join(stack(data_filtered),annot_df_filtered,by="ind")
+    
+    ggboxplot(boxplot_df,x="ind",y="values",col=input$pickGrouping) + scale_x_discrete(guide = guide_axis(angle=45))
     
   })
   
