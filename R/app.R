@@ -22,9 +22,10 @@ if (any(installed_packages == FALSE)) {
 }
 
 librarian::shelf(tidyverse,
-                 shiny, 
-                 DT, 
-                 shinyWidgets, 
+                 shiny,
+                 shinyWidgets,
+                 shinydashboard,
+                 DT,
                  pcaMethods, 
                  ggrepel, 
                  pheatmap, 
@@ -41,47 +42,29 @@ trimSamples <- function(x){
 }
 
 ProtData <- function(...){
-  ui <- fluidPage(
-  sidebarLayout(
-    sidebarPanel(
-      fileInput("file1", "Choose Perseus .txt File", accept = c(".csv",".txt")),
-      checkboxInput("trim","Trim SampleIDs",value = FALSE),
-      uiOutput("picker"),
-      actionButton("filter", "Load Data"),
-      width=3
+
+  
+  ui <- dashboardPage(
+    header = dashboardHeader(title = "ProtData", titleWidth = 450),
+    sidebar = dashboardSidebar(
+      sidebarMenu(
+        fileInput("file1", "Choose Perseus .txt File", accept = c(".csv",".txt")),
+        checkboxInput("trim","Trim SampleIDs",value = FALSE),
+        uiOutput("picker"),
+        actionButton("filter", "Load Data"),
+        uiOutput("pcaTab"),
+        uiOutput("volcanoTab")
+      )
     ),
-    mainPanel(
-      tabsetPanel(
+    body = dashboardBody(
+      tabsetPanel(id="tabs",
         tabPanel("Datatable",DT::dataTableOutput("contents")),
-        tabPanel("PCA",sidebarLayout(sidebarPanel(uiOutput("pickerGrouping")),
-                                     mainPanel(plotOutput("pcaPlot")))),
+        tabPanel("PCA",plotOutput("pcaPlot")),
         tabPanel("Heatmap",plotOutput("heatmap")),
-        tabPanel("Volcano",sidebarLayout(sidebarPanel(uiOutput("picker1"),
-                                                      uiOutput("picker2"),
-                                                      numericInput("fcCutoff","+/- FC cutoff",
-                                                                   value = 2,
-                                                                   min=0,
-                                                                   max=10,
-                                                                   step=0.5),
-                                                      numericInput("pValueCutoff","pvalue cutoff",
-                                                                   value = 0.05,
-                                                                   min=0,
-                                                                   max=0.1,
-                                                                   step=0.01),
-                                                      sliderInput("overlaps",
-                                                                  "Number of Overlaps:",
-                                                                  min = 1,
-                                                                  max = 50,
-                                                                  value = 30),
-                                                      actionButton("volcanoButton","Draw Volcano"),
-                                                      width=3),
-                                         mainPanel(
-                                           plotOutput("volcano")
-                                         ))))
-     
+        tabPanel("Volcano",plotOutput("volcano"))
+      )
     )
   )
-)
 
 server <- function(input, output, session) {
   
@@ -135,42 +118,60 @@ server <- function(input, output, session) {
     pickerInput("pick","Choose Columns",choices = colnames(data$main),selected=colnames(data$main),multiple=TRUE)
   })
   
-  # Select the Grouping for coloring the PCA plot
-  output$pickerGrouping <- renderUI({
+  output$pcaTab <- renderUI({
     data <- dataset()
     groupings <- colnames(data$annotRows)
-    pickerInput("pickGrouping", "Choose Grouping",choices=groupings,selected = groupings[1],multiple = FALSE)
+    
+    tagList(
+      conditionalPanel(condition='input.tabs == "PCA"',
+                       pickerInput("pickGrouping", "Choose Grouping",choices=groupings,selected = groupings[1],multiple = FALSE),
+                       )
+    )
   })
   
-  # Manually select the correct columns with the  pvalues
-  output$picker1 <- renderUI({
+  
+  output$volcanoTab <- renderUI({
     data <- dataset()
     
-    columns <- lapply(colnames(data$annotCols),function(x) {grepl("p.value",x)})
+    pvalueColumns <- columns <- lapply(colnames(data$annotCols),function(x) {grepl("p.value",x)})
     
     pvalueColumn <- NULL
-    if (sum(columns == TRUE) > 0){
-      pvalueColumn <- colnames(data$annotCols)[columns == TRUE][1]
+    if (sum(pvalueColumns == TRUE) > 0){
+      pvalueColumn <- colnames(data$annotCols)[pvalueColumns == TRUE][1]
     }
     
-    pickerInput("pick1","Choose pvalue",choices=colnames(data$annotCols),selected = pvalueColumn,multiple = FALSE)
-  })
-  
-  # Manually select the correct columns with the log2FC values
-  output$picker2 <- renderUI({
-    data <- dataset()
     
-    
-    columns <- lapply(colnames(data$annotCols),function(x) {grepl("Difference",x)})
+    FCColumns <- lapply(colnames(data$annotCols),function(x) {grepl("Difference",x)})
     
     lfcColumn <- NULL
-    if (sum(columns == TRUE) > 0){
-      lfcColumn <- colnames(data$annotCols)[columns == TRUE][1]
+    if (sum(FCColumns == TRUE) > 0){
+      lfcColumn <- colnames(data$annotCols)[FCColumns == TRUE][1]
     }
     
-    pickerInput("pick2","Choose log2FC",choices=colnames(data$annotCols),selected=lfcColumn,multiple = FALSE)
+    tagList(
+      conditionalPanel(condition = 'input.tabs == "Volcano"',
+                       pickerInput("pick1","Choose pvalue",choices=colnames(data$annotCols),selected = pvalueColumn,multiple = FALSE),
+                       pickerInput("pick2","Choose log2FC",choices=colnames(data$annotCols),selected=lfcColumn,multiple = FALSE),
+                       numericInput("fcCutoff","+/- FC cutoff",
+                                    value = 2,
+                                    min=0,
+                                    max=10,
+                                    step=0.5),
+                       numericInput("pValueCutoff","pvalue cutoff",
+                                    value = 0.05,
+                                    min=0,
+                                    max=0.1,
+                                    step=0.01),
+                       sliderInput("overlaps",
+                                   "Number of Overlaps:",
+                                   min = 1,
+                                   max = 50,
+                                   value = 30),
+                       actionButton("volcanoButton","Draw Volcano")
+                       )
+    )
   })
-  
+
   # prepare a custom Dataframe volcano_df to draw the VolcanoPlot 
   volcano_df <- eventReactive(input$volcanoButton,{
     data <- dataset()
