@@ -39,12 +39,12 @@
 #                  quiet=TRUE)
 
 
-installed_packages <- "renv" %in% rownames(installed.packages())
-if (any(installed_packages == FALSE)) {
-  install.packages("renv")
-}
-
-renv::restore()
+# installed_packages <- "renv" %in% rownames(installed.packages())
+# if (any(installed_packages == FALSE)) {
+#   install.packages("renv")
+# }
+# 
+# renv::restore()
 
 
 library(tidyverse)
@@ -56,15 +56,12 @@ library(DT)
 library(ggpubr)
 library(EnhancedVolcano)
 library(PerseusR)
+library(pheatmap)
 
 trimSamples <- function(x){
   y <- unlist(strsplit(x,"[.]"))
   return(y[[length(y)-1]])
 }
-
-
-
-
 
 ProtData <- function(...){
 
@@ -131,6 +128,9 @@ server <- function(input, output, session) {
     pickerInput("pick","Choose Columns",choices = colnames(data$main),selected=colnames(data$main),multiple=TRUE)
   })
   
+  
+  # render the appropriate UI elements for the PCA and Boxplot tabs
+  # only shows them when the PCA or Boxplot tab are the current active tabs
   output$pcaTab <- renderUI({
     data <- dataset()
     groupings <- colnames(data$annotRows)
@@ -142,7 +142,8 @@ server <- function(input, output, session) {
     )
   })
   
-  
+  # render the appropriate UI elements for the Volcano tab
+  # only shows them when the VolcanoTab is the current active tab
   output$volcanoTab <- renderUI({
     data <- dataset()
     
@@ -235,7 +236,8 @@ server <- function(input, output, session) {
   })
   
   
-  # filter the Dataset according to the selected Columns     
+  # filter the Dataset according to the selected Columns
+  # return the index of the kept columns
   dataset_filtered <- eventReactive(input$filter,{
     data <- dataset()
     filter_idx <- colnames(data$main)  %in% input$pick
@@ -288,13 +290,13 @@ server <- function(input, output, session) {
     
   })
   
+  # Boxplots of the selected columns
+  # colored according to the selected Grouping
   output$boxplots <- renderPlot({
     data <- dataset()
     filter_list <- dataset_filtered()
     
     data_filtered <- data$main[,filter_list]
-    
-    #print(row.names(data$annotRows))
     
     annot_df <- as.data.frame(data$annotRows)
     annot_df$ind <- row.names(annot_df)
@@ -302,10 +304,14 @@ server <- function(input, output, session) {
 
     boxplot_df <- right_join(stack(data_filtered),annot_df_filtered,by="ind")
     
-    ggboxplot(boxplot_df,x="ind",y="values",col=input$pickGrouping) + scale_x_discrete(guide = guide_axis(angle=45))
+    ggboxplot(boxplot_df, x="ind",y="values", col=input$pickGrouping,
+              xlab="Samples",ylab="Expression") + 
+      scale_x_discrete(guide = guide_axis(angle=45))
     
   })
   
+  # Heatmap of the selected columns
+  # all annotations are automatically drawn as colorbars 
   output$heatmap <- renderPlot({
     data <- dataset()
     data_filtered <- dataset_filtered()
@@ -316,6 +322,7 @@ server <- function(input, output, session) {
     pheatmap(x,show_rownames = FALSE,cluster_rows = TRUE,treeheight_row = 0,annotation_col = annot_filtered)
   })
   
+  #this makes sure the program exits properly when pressing the "x" button 
   session$onSessionEnded(function() { stopApp() })
   }
   # Run the application 
