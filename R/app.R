@@ -4,15 +4,16 @@
 #   * maybe fix reactive binding of selected columns and PCA + Datatable
 #   * Correct way to trim Sample Names
 #   * fix ratio of plots(take advantage of the full page)
-#   * swap to shinydashboard for sidebar 
-#   * create project structure with separate files 
-#   * fix issue with import PerseusR on a new machine 
+#   * swap to shinydashboard for a more dynamic sidebar 
+#   * fix issue with import PerseusR on a new machine
+#   * display summary statistic for the data 
 
 # Future Ideas 
 #   * Enrichments 
 #   * move away from PerseusR 
 #      * implement own Parser
 #   * general analysis platform for DIANN and Maxquant output 
+#   * make it available to be installed from GitHub
 
 
 installed_packages <- "librarian" %in% rownames(installed.packages())
@@ -124,7 +125,7 @@ server <- function(input, output, session) {
     cols_split <- unlist(cols_split)
     
     colnames(dataset()$main) <- cols_split
-    rownames(dataset()$annotRows) <- cols_split
+    rownames(dataset()$annotRows) <- make.names(cols_split,unique=TRUE)
     
   })
   
@@ -221,7 +222,6 @@ server <- function(input, output, session) {
   dataset_filtered <- eventReactive(input$filter,{
     data <- dataset()
     filter_idx <- colnames(data$main)  %in% input$pick
-    
     return(filter_idx)
     
   })
