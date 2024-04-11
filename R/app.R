@@ -5,7 +5,7 @@
 #   * Correct way to trim Sample Names
 #   * fix ratio of plots(take advantage of the full page)
 #   * fix issue with installing dependencies on a new machine
-#     * could transition to renv
+#     * could transition to renv -> how to restore automatically? 
 #   * display summary statistic for the data 
 #   * Feedback 
 
@@ -17,38 +17,52 @@
 #   * make it available to be installed from GitHub
 
 
-installed_packages <- "librarian" %in% rownames(installed.packages())
+# installed_packages <- "librarian" %in% rownames(installed.packages())
+# if (any(installed_packages == FALSE)) {
+#      install.packages("librarian")
+# }
+# 
+# librarian::shelf(tidyverse,
+#                  shiny,
+#                  shinyWidgets,
+#                  shinydashboard,
+#                  DT,
+#                  pcaMethods,
+#                  ggpubr,
+#                  ggrepel, 
+#                  pheatmap, 
+#                  EnhancedVolcano,
+#                  #BiocManager,
+#                  #devtools,
+#                  Biobase,
+#                  cox-labs/PerseusR,
+#                  quiet=TRUE)
+
+
+installed_packages <- "renv" %in% rownames(installed.packages())
 if (any(installed_packages == FALSE)) {
-     install.packages("librarian")
+  install.packages("renv")
 }
 
-librarian::shelf(tidyverse,
-                 shiny,
-                 shinyWidgets,
-                 shinydashboard,
-                 DT,
-                 pcaMethods,
-                 ggpubr,
-                 ggrepel, 
-                 pheatmap, 
-                 EnhancedVolcano,
-                 #BiocManager,
-                 #devtools,
-                 Biobase,
-                 cox-labs/PerseusR,
-                 quiet=TRUE)
+renv::restore()
 
 
+library(tidyverse)
+library(shiny)
+library(shinyWidgets)
+library(shinydashboard)
+library(pcaMethods)
+library(DT)
+library(ggpubr)
+library(EnhancedVolcano)
+library(PerseusR)
 
 trimSamples <- function(x){
   y <- unlist(strsplit(x,"[.]"))
   return(y[[length(y)-1]])
 }
 
-# installed_packages <- "renv" %in% rownames(installed.packages())
-# if (any(installed_packages == FALSE)) {
-#   install.packages("renv")
-# }
+
 
 
 
