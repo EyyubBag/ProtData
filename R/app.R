@@ -63,6 +63,17 @@ trimSamples <- function(x){
   return(y[[length(y)-1]])
 }
 
+
+#' @import shinydashboard
+#' @import shiny
+#' @import shinyWidgets
+#' @import tidyverse
+#' @importFrom pcaMethods pca
+#' @import DT
+#' @importFrom ggpubr ggboxplot
+#' @importFrom EnhancedVolcano EnhancedVolcano
+#' @importFrom PerseusR read.perseus.default
+#' @importFrom pheatmap pheatmap
 #' @export 
 ProtData <- function(...){
 
