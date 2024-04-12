@@ -47,16 +47,16 @@
 # renv::restore()
 
 
-library(tidyverse)
-library(shiny)
-library(shinyWidgets)
-library(shinydashboard)
-library(pcaMethods)
-library(DT)
-library(ggpubr)
-library(EnhancedVolcano)
-library(PerseusR)
-library(pheatmap)
+# library(tidyverse)
+# library(shiny)
+# library(shinyWidgets)
+# library(shinydashboard)
+# library(pcaMethods)
+# library(DT)
+# library(ggpubr)
+# library(EnhancedVolcano)
+# library(PerseusR)
+# library(pheatmap)
 
 trimSamples <- function(x){
   y <- unlist(strsplit(x,"[.]"))
@@ -71,6 +71,7 @@ trimSamples <- function(x){
 #' @import ggplot2
 #' @import dplyr
 #' @import magrittr
+#' @import ggrepel
 #' @importFrom pcaMethods pca scores
 #' @importFrom ggpubr ggboxplot
 #' @importFrom EnhancedVolcano EnhancedVolcano
