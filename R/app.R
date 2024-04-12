@@ -7,7 +7,7 @@
 #   * fix issue with installing dependencies on a new machine
 #     * could transition to renv -> how to restore automatically? 
 #   * display summary statistic for the data 
-#   * Feedback 
+#   * Feedback
 
 # Future Ideas 
 #   * Enrichments 
@@ -63,6 +63,7 @@ trimSamples <- function(x){
   return(y[[length(y)-1]])
 }
 
+#' @export 
 ProtData <- function(...){
 
   
