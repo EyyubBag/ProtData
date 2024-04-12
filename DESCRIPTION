@@ -13,12 +13,16 @@ RoxygenNote: 7.3.1
 Depends: 
     tidyverse
 Imports: 
+    dplyr,
     DT,
     EnhancedVolcano,
+    ggplot2,
     ggpubr,
+    magrittr,
     pcaMethods,
     PerseusR,
     pheatmap,
     shiny,
     shinydashboard,
-    shinyWidgets
+    shinyWidgets,
+    stringr

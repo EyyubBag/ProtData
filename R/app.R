@@ -67,7 +67,10 @@ trimSamples <- function(x){
 #' @import shinydashboard
 #' @import shiny
 #' @import shinyWidgets
-#' @import tidyverse
+#' @import stringr
+#' @import ggplot2
+#' @import dplyr
+#' @import magrittr
 #' @importFrom pcaMethods pca scores
 #' @importFrom ggpubr ggboxplot
 #' @importFrom EnhancedVolcano EnhancedVolcano
