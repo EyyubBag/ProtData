@@ -63,17 +63,17 @@ trimSamples <- function(x){
   return(y[[length(y)-1]])
 }
 
-
+#' @import DT
 #' @import shinydashboard
 #' @import shiny
 #' @import shinyWidgets
 #' @import tidyverse
-#' @importFrom pcaMethods pca
-#' @import DT
+#' @importFrom pcaMethods pca scores
 #' @importFrom ggpubr ggboxplot
 #' @importFrom EnhancedVolcano EnhancedVolcano
 #' @importFrom PerseusR read.perseus.default
 #' @importFrom pheatmap pheatmap
+#' @importFrom utils stack 
 #' @export 
 ProtData <- function(...){
 
@@ -92,7 +92,7 @@ ProtData <- function(...){
     ),
     body = dashboardBody(
       tabsetPanel(id="tabs",
-        tabPanel("Datatable",DT::dataTableOutput("contents")),
+        tabPanel("Datatable",DT::DTOutput("contents")),
         tabPanel("Boxplots",plotOutput("boxplots")),
         tabPanel("PCA",plotOutput("pcaPlot")),
         tabPanel("Heatmap",plotOutput("heatmap")),
@@ -258,7 +258,7 @@ server <- function(input, output, session) {
   })
   
   # Render the Table from the filtered Datatable
-  output$contents <- DT::renderDataTable({
+  output$contents <- DT::renderDT({
     data <- dataset()
     filter <- dataset_filtered()
     
