@@ -71,7 +71,7 @@ trimSamples <- function(x){
 #' @import ggplot2
 #' @import dplyr
 #' @import magrittr
-#' @import ggrepel
+#' @importFrom ggrepel geom_text_repel
 #' @importFrom pcaMethods pca scores
 #' @importFrom ggpubr ggboxplot
 #' @importFrom EnhancedVolcano EnhancedVolcano
