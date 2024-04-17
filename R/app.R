@@ -4,8 +4,8 @@
 #   * maybe fix reactive binding of selected columns and PCA + Datatable
 #   * Correct way to trim Sample Names
 #   * fix ratio of plots(take advantage of the full page)
-#   * display summary statistic for the data 
 #   * Feedback
+#   * more efficient imports 
 
 # Future Ideas 
 #   * Enrichments 
@@ -100,6 +100,7 @@ ProtData <- function(...){
     body = dashboardBody(
       tabsetPanel(id="tabs",
         tabPanel("Datatable",DT::DTOutput("contents")),
+        tabPanel("Summary",DT::DTOutput("summary")),
         tabPanel("Boxplots",plotOutput("boxplots")),
         tabPanel("PCA",plotOutput("pcaPlot")),
         tabPanel("Heatmap",plotOutput("heatmap")),
@@ -264,6 +265,45 @@ server <- function(input, output, session) {
     
   })
   
+  
+  output$summary <- DT::renderDT({
+    data <- dataset()
+    filter <- dataset_filtered()
+    
+    main_filtered <- data$main[,filter]
+    annot_filtered <- data$annotRow[filter,]
+    
+    temp_df <- main_filtered %>% 
+      reframe(across(where(is.numeric),.names="{.col}-{.fn}",
+                     .fns = list(Median = median,
+                                 Mean=mean,
+                                 SD=sd,
+                                 SE = ~sd(.)/sqrt(n()),
+                                 Min = min,
+                                 Max = max,
+                                 q25 = ~quantile(., 0.25), 
+                                 q75 = ~quantile(., 0.75),
+                                 Valid = ~sum(!is.na(.))
+                                 ))) %>% 
+      pivot_longer(everything(), names_sep = "-", names_to = c( "Samples", ".value")) %>% 
+      left_join(annot_filtered %>% mutate(Samples = row.names(annot_filtered)),by="Samples")
+    
+    
+    table <- DT::datatable(temp_df,
+                           escape=FALSE,
+                           options = list(
+                             pageLength = 20, 
+                             autoWidth = TRUE,
+                             columnDefs = list(list( targets = 2, width = '200px')),
+                             scrollX = TRUE
+                           ))
+    
+    DT::formatRound(table,
+                    columns=colnames(temp_df[unlist(lapply(temp_df,is.double))]),
+                    digits=3)
+    
+  })
+  
   # Render the Table from the filtered Datatable
   output$contents <- DT::renderDT({
     data <- dataset()
@@ -281,12 +321,12 @@ server <- function(input, output, session) {
                   options = list(
                     pageLength = 20, 
                     autoWidth = TRUE,
-                    columnDefs = list(list( targets = 2, width = '200px')),
+                    columnDefs = list(list( targets = 2, width = '100px')),
                   scrollX = TRUE
                    ))
     
     DT::formatRound(table,
-                    columns=colnames(temp_df[-1]),
+                    columns=colnames(temp_df[unlist(lapply(temp_df,is.double))]),
                     digits=3)
     })
 
