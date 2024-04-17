@@ -4,17 +4,15 @@
 #   * maybe fix reactive binding of selected columns and PCA + Datatable
 #   * Correct way to trim Sample Names
 #   * fix ratio of plots(take advantage of the full page)
-#   * fix issue with installing dependencies on a new machine
-#     * could transition to renv -> how to restore automatically? 
 #   * display summary statistic for the data 
 #   * Feedback
 
 # Future Ideas 
 #   * Enrichments 
 #   * move away from PerseusR 
-#      * implement own Parser
+#      * implement own Parser -> might not need if we go forward with not using Perseus anymore 
 #   * general analysis platform for DIANN and Maxquant output 
-#   * make it available to be installed from GitHub
+
 
 
 # installed_packages <- "librarian" %in% rownames(installed.packages())
@@ -46,17 +44,21 @@
 # 
 # renv::restore()
 
-
-# library(tidyverse)
-# library(shiny)
-# library(shinyWidgets)
-# library(shinydashboard)
-# library(pcaMethods)
-# library(DT)
-# library(ggpubr)
-# library(EnhancedVolcano)
-# library(PerseusR)
-# library(pheatmap)
+library(magrittr)
+library(ggplot2)
+library(ggrepel)
+library(stringr)
+library(dplyr)
+library(tidyr)
+library(shiny)
+library(shinyWidgets)
+library(shinydashboard)
+library(pcaMethods)
+library(DT)
+library(ggpubr)
+library(EnhancedVolcano)
+library(PerseusR)
+library(pheatmap)
 
 trimSamples <- function(x){
   y <- unlist(strsplit(x,"[.]"))
@@ -71,6 +73,7 @@ trimSamples <- function(x){
 #' @import ggplot2
 #' @import dplyr
 #' @import magrittr
+#' @import Biobase
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom pcaMethods pca scores
 #' @importFrom ggpubr ggboxplot
@@ -345,5 +348,4 @@ server <- function(input, output, session) {
   #shinyApp(ui = ui, server = server, options = list(launch.browser = TRUE))
   shinyApp(ui = ui, server = server)
 }
-
 ProtData()
