@@ -12,6 +12,7 @@
 #   * move away from PerseusR 
 #      * implement own Parser -> might not need if we go forward with not using Perseus anymore 
 #   * general analysis platform for DIANN and Maxquant output 
+#   * handling NA values 
 
 
 
@@ -271,7 +272,7 @@ server <- function(input, output, session) {
     filter <- dataset_filtered()
     
     main_filtered <- data$main[,filter]
-    annot_filtered <- data$annotRow[filter,]
+    annot_df <- as.data.frame(data$annotRow)
     
     temp_df <- main_filtered %>% 
       reframe(across(where(is.numeric),.names="{.col}-{.fn}",
@@ -287,7 +288,7 @@ server <- function(input, output, session) {
                                  "Valid %" = ~sum(!is.na(.))/length(.) * 100
                                  ))) %>% 
       pivot_longer(everything(), names_sep = "-", names_to = c( "Samples", ".value")) %>% 
-      left_join(annot_filtered %>% mutate(Samples = row.names(annot_filtered)),by="Samples")
+      left_join(annot_df %>% mutate(Samples = row.names(annot_df)),by="Samples")
     
     
     table <- DT::datatable(temp_df,
