@@ -283,7 +283,8 @@ server <- function(input, output, session) {
                                  Max = max,
                                  q25 = ~quantile(., 0.25), 
                                  q75 = ~quantile(., 0.75),
-                                 Valid = ~sum(!is.na(.))
+                                 Valid = ~sum(!is.na(.)),
+                                 "Valid %" = ~sum(!is.na(.))/length(.) * 100
                                  ))) %>% 
       pivot_longer(everything(), names_sep = "-", names_to = c( "Samples", ".value")) %>% 
       left_join(annot_filtered %>% mutate(Samples = row.names(annot_filtered)),by="Samples")
@@ -300,7 +301,7 @@ server <- function(input, output, session) {
     
     DT::formatRound(table,
                     columns=colnames(temp_df[unlist(lapply(temp_df,is.double))]),
-                    digits=3)
+                    digits=2)
     
   })
   
