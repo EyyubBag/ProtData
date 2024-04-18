@@ -66,7 +66,6 @@ trimSamples <- function(x){
   return(y[[length(y)-1]])
 }
 
-#' @import DT
 #' @import shinydashboard
 #' @import shiny
 #' @import shinyWidgets
@@ -74,7 +73,7 @@ trimSamples <- function(x){
 #' @import ggplot2
 #' @import dplyr
 #' @import magrittr
-#' @import Biobase
+#' @importFrom DT DTOutput renderDT datatable formatRound
 #' @importFrom ggrepel geom_text_repel
 #' @importFrom pcaMethods pca scores
 #' @importFrom ggpubr ggboxplot
@@ -267,6 +266,8 @@ server <- function(input, output, session) {
   })
   
   
+  
+  # Display a table with some statistics for each sample + display groupings 
   output$summary <- DT::renderDT({
     data <- dataset()
     filter <- dataset_filtered()
